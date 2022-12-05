@@ -8,44 +8,116 @@ pub struct Instruction {
 }
 
 pub fn make() {
-    let raw_input = fs::read_to_string("input/day-05.sample.txt").expect("Failed to read input");
+    let raw_input = fs::read_to_string("input/day-05.txt").expect("Failed to read input");
 
-    println!("Day 4 results");
-    println!("pt 1: {:?}", part_1(&raw_input));
-}
-
-pub fn part_1(input: &String) -> i32 {
-    let foo: Vec<&str> = input.split_inclusive("]\n").collect();
-    let stack_lines: Vec<Vec<&str>> = foo
-        .get(0)
-        .unwrap()
+    let stack_lines: Vec<Vec<&str>> = raw_input
         .lines()
+        .take(8)
+        // .take(3)
         .map(|x| x.split("").collect())
         .collect();
 
-    let instructions: Vec<Instruction> = foo
-        .get(1)
-        .unwrap()
-        .split("\n\n")
-        .last()
-        .unwrap()
-        .split("\n")
+    let instructions: Vec<Instruction> = raw_input
+        .lines()
+        .skip(10)
+        // .skip(5)
         .map(to_instruction)
         .collect();
 
-    let ok: Vec<&str> = foo.get(1).unwrap().split("\n\n").collect();
-    let num_lanes = ok.get(0).copied().unwrap().split("").collect();
+    let lane_index_raw: Vec<&str> = raw_input
+        .lines()
+        .skip(8)
+        // .skip(3)
+        .take(1)
+        .map(|x| x.split("").collect())
+        .last()
+        .unwrap();
+    println!("Day 5 results");
 
-    let lanes = get_as_lanes(num_lanes, stack_lines);
+    let lanes = get_as_lanes(lane_index_raw, stack_lines);
 
-    println!("lanes: {:?}", lanes);
-    println!("instructions: {:?}", instructions);
-    2
+    // println!("pt 1: {:?}", part_1(instructions, lanes));
+    println!("pt 1: {:?}", part_2(instructions, lanes));
+}
+
+pub fn part_1(instructions: Vec<Instruction>, lanes: Vec<Vec<&str>>) {
+    let after = handle_instructions(instructions, lanes);
+    let result: Vec<&&str> = after.iter().map(|x| x.get(0).unwrap()).collect();
+
+    println!("pt 1: {:?}", result);
+}
+
+pub fn part_2(instructions: Vec<Instruction>, lanes: Vec<Vec<&str>>) {
+    let after = handle_instructions_2(instructions, lanes);
+    let result: Vec<&&str> = after.iter().map(|x| x.get(0).unwrap()).collect();
+
+    println!("pt 1: {:?}", result);
+}
+
+pub fn handle_instructions(
+    instructions: Vec<Instruction>,
+    stacks: Vec<Vec<&str>>,
+) -> Vec<Vec<&str>> {
+    let mut acc: Vec<Vec<&str>> = stacks.to_owned();
+
+    for instruction in instructions {
+        println!("inst: {:?}", instruction);
+        let from = usize::try_from(instruction.from).unwrap() - 1;
+        let to = usize::try_from(instruction.to).unwrap() - 1;
+        let amount = usize::try_from(instruction.amount).unwrap();
+
+        println!("stacks before: {:?}", acc);
+        let mut removed: Vec<_> = acc[from].drain(0..amount).collect();
+        println!("stacks after removal: {:?}", acc);
+        println!("stacks removed: {:?}", removed);
+        acc[to].reverse();
+        acc[to].append(&mut removed);
+        acc[to].reverse();
+        println!("stacks after : {:?}", acc);
+    }
+    println!("stacks after: {:?}", acc);
+
+    return acc;
+}
+
+pub fn handle_instructions_2(
+    instructions: Vec<Instruction>,
+    stacks: Vec<Vec<&str>>,
+) -> Vec<Vec<&str>> {
+    let mut acc: Vec<Vec<&str>> = stacks.to_owned();
+
+    for instruction in instructions {
+        println!("inst: {:?}", instruction);
+        let from = usize::try_from(instruction.from).unwrap() - 1;
+        let to = usize::try_from(instruction.to).unwrap() - 1;
+        let amount = usize::try_from(instruction.amount).unwrap();
+
+        println!("stacks before: {:?}", acc);
+        let mut removed: Vec<_> = acc[from].drain(0..amount).collect();
+
+        println!("stacks after removal: {:?}", acc);
+        println!("stacks removed: {:?}", removed);
+        acc[to] = [removed.as_slice(), acc[to].as_slice()].concat();
+        // // acc[to].reverse();
+        // acc[to].append(&mut removed);
+        // acc[to].reverse();
+        println!("stacks after : {:?}", acc);
+    }
+    println!("stacks after: {:?}", acc);
+
+    return acc;
 }
 
 pub fn get_as_lanes<'a>(lanes: Vec<&'a str>, stack_lines: Vec<Vec<&'a str>>) -> Vec<Vec<&'a str>> {
-    let mut v: Vec<Vec<&str>> = vec![vec![], vec![], vec![]];
+    let lanes_clean: Vec<&str> = lanes
+        .iter()
+        .copied()
+        .filter(|x| x != &"" && x != &" ")
+        .collect();
 
+    let mut v: Vec<Vec<&str>> = vec![];
+
+    lanes_clean.iter().for_each(|_x| v.push(vec![]));
     for stack_line in stack_lines.iter() {
         for (pos, e) in stack_line.iter().copied().enumerate() {
             let lanes_pos_item = lanes.get(pos).copied().unwrap().trim();
@@ -58,21 +130,6 @@ pub fn get_as_lanes<'a>(lanes: Vec<&'a str>, stack_lines: Vec<Vec<&'a str>>) -> 
 
     return v;
 }
-
-// pub fn to_stacks(s: Vec<Vec<&str>>) -> Vec<&str> {
-//     println!("stack before: {:?}", s);
-//     let mut foo: Vec<Vec<&str>> = Vec::new();
-
-//     for (pos, e) in s.iter().enumerate() {
-//         println!("element {:?} in pos {:?}", pos, e);
-//         for (pos, e) in s.iter().enumerate() {
-//             println!("element {:?} in pos {:?}", pos, e);
-//         }
-//     }
-
-//     println!("stack after: {:?}", foo);
-//     return vec!["s"];
-// }
 
 pub fn to_instruction(s: &str) -> Instruction {
     let v: Vec<_> = s
