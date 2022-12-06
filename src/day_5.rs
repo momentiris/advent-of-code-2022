@@ -36,7 +36,6 @@ pub fn make() {
 
     let lanes = get_as_lanes(lane_index_raw, stack_lines);
 
-    // println!("pt 1: {:?}", part_1(instructions, lanes));
     println!("pt 1: {:?}", part_2(instructions, lanes));
 }
 
@@ -66,16 +65,12 @@ pub fn handle_instructions(
         let to = usize::try_from(instruction.to).unwrap() - 1;
         let amount = usize::try_from(instruction.amount).unwrap();
 
-        println!("stacks before: {:?}", acc);
         let mut removed: Vec<_> = acc[from].drain(0..amount).collect();
-        println!("stacks after removal: {:?}", acc);
-        println!("stacks removed: {:?}", removed);
+
         acc[to].reverse();
         acc[to].append(&mut removed);
         acc[to].reverse();
-        println!("stacks after : {:?}", acc);
     }
-    println!("stacks after: {:?}", acc);
 
     return acc;
 }
@@ -87,23 +82,12 @@ pub fn handle_instructions_2(
     let mut acc: Vec<Vec<&str>> = stacks.to_owned();
 
     for instruction in instructions {
-        println!("inst: {:?}", instruction);
         let from = usize::try_from(instruction.from).unwrap() - 1;
         let to = usize::try_from(instruction.to).unwrap() - 1;
         let amount = usize::try_from(instruction.amount).unwrap();
-
-        println!("stacks before: {:?}", acc);
-        let mut removed: Vec<_> = acc[from].drain(0..amount).collect();
-
-        println!("stacks after removal: {:?}", acc);
-        println!("stacks removed: {:?}", removed);
+        let removed: Vec<_> = acc[from].drain(0..amount).collect();
         acc[to] = [removed.as_slice(), acc[to].as_slice()].concat();
-        // // acc[to].reverse();
-        // acc[to].append(&mut removed);
-        // acc[to].reverse();
-        println!("stacks after : {:?}", acc);
     }
-    println!("stacks after: {:?}", acc);
 
     return acc;
 }
