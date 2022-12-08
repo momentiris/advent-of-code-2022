@@ -6,6 +6,22 @@ pub fn make() {
     println!("Day 6 results");
     println!("pt 1: {:?}", part_1(raw_input.chars().collect()));
     println!("pt 2: {:?}", part_2(raw_input.chars().collect()));
+    let ok = solve(4usize, raw_input);
+    println!("pt 3: {:?}", ok);
+}
+
+fn solve(window_size: usize, slice: String) -> usize {
+    slice
+        .as_bytes()
+        .windows(window_size)
+        .position(|slice| {
+            slice
+                .iter()
+                .enumerate()
+                .all(|(i, x)| !slice[i + 1..].contains(x))
+        })
+        .unwrap()
+        + window_size
 }
 
 pub fn part_1(input: Vec<char>) -> usize {
